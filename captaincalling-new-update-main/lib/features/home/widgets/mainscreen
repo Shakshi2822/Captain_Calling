@@ -1,0 +1,58 @@
+import 'package:flutter/material.dart';
+import 'package:Caption_Calling/features/home/home_page.dart';
+import 'package:Caption_Calling/features/teams/tournment.dart';
+import 'package:Caption_Calling/features/vedio/blog.dart';
+import 'package:Caption_Calling/features/Article/articlepage.dart';
+
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  _MainScreenState createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 0; // Track the selected index
+
+  // List of screen widgets to display based on the index
+  final List<Widget> _screens = [
+    const HomeScreen(),           // Home screen
+    const TournamentPage(),       // Tournament screen
+    const BlogScreen(),           // Blog screen
+    const ArticleScreen(),        // Article screen
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _screens[_currentIndex], // Display the screen based on selected index
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex, // Highlight the selected tab
+        type: BottomNavigationBarType.fixed, // To show all items in one row
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index; // Update the current index to change screen
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.sports_cricket),
+            label: 'Tournament',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera),
+            label: 'Video',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.article),
+            label: 'Articles',
+          ),
+        ],
+      ),
+    );
+  }
+}

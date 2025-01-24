@@ -1,0 +1,62 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class User {
+  String name;
+  String phoneNumber;
+  String email;
+  String sport;
+  String role;
+
+  User({
+    required this.name,
+    required this.phoneNumber,
+    required this.email,
+    required this.sport,
+    required this.role,
+  });
+
+  // Static property to store the current user instance
+  static User? currentUser;
+
+  // Method to update or set the current user
+  static void updateUser(User user) {
+    currentUser = user;
+  }
+
+  // Method to fetch the current user
+  static User? getUser() {
+    return currentUser;
+  }
+
+  // Check if the user data exists (if the user is registered)
+  static bool isUserRegistered() {
+    return currentUser != null;
+  }
+
+  // Method to fetch user profile from the API
+  static Future<void> fetchUserProfile(String userId) async {
+    final apiUrl = 'https://captain-calling-dev-744600285710.asia-south1.run.app/api/v1/user/$userId';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // Create a User object from the API response
+        currentUser = User(
+          name: data['name'],
+          phoneNumber: data['phone'],
+          email: data['email'],
+          sport: data['sport'],
+          role: data['role'],
+        );
+      } else {
+        throw Exception('Failed to load user profile: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error fetching user profile: $e');
+    }
+  }
+}

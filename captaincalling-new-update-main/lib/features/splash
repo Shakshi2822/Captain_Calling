@@ -1,0 +1,52 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'homescreen.dart'; // Replace with your actual HomeScreen import
+import 'loginscreen.dart'; // Replace with your LoginScreen import
+
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({Key? key}) : super(key: key);
+
+  Future<void> checkLoginStatus(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final String isUserID= await prefs.getString('userId')?? '';
+
+    if (isUserID.isNotEmpty) {
+      // Navigate to HomeScreen if already logged in
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => HomeScreen()), // Replace with your HomeScreen
+      );
+    } else {
+      // Navigate to LoginScreen if not logged in
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    checkLoginStatus(context);
+
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Display the logo
+            Image.asset(
+              'assets/images/logo.png', // Path to your logo image
+              width: 150, // Set width of the logo
+              height: 150, // Set height of the logo
+            ),
+            const SizedBox(height: 20), // Space between logo and loading indicator
+            const CircularProgressIndicator(), // Loading indicator
+          ],
+        ),
+      ),
+    );
+  }
+}

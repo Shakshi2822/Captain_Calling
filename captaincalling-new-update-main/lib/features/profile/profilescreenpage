@@ -1,0 +1,256 @@
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class ProfileScreen extends StatefulWidget {
+  final String userId; // Pass the userId or any identifier to fetch user data
+  const ProfileScreen({super.key, required this.userId});
+
+  @override
+  _ProfileScreenState createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _pinCodeController = TextEditingController();
+  final TextEditingController _districtController = TextEditingController();
+  final TextEditingController _stateController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
+  final TextEditingController _primarySportController = TextEditingController();
+  final TextEditingController _secondarySportController = TextEditingController();
+  final TextEditingController _primarySportRoleController = TextEditingController();
+  final TextEditingController _secondarySportRoleController = TextEditingController();
+  final TextEditingController _ageGroupController = TextEditingController();
+  final TextEditingController _sportLevelController = TextEditingController();
+
+  String? _selectedSport;
+  String? _selectedPrimarySportRole;
+  String? _selectedSecondarySport;
+  String? _selectedSecondarySportRole;
+  String? _selectedAgeGroup;
+  String? _selectedSportLevel;
+
+  // API URL to fetch user data
+  final String apiUrl = 'https://captain-calling-dev-744600285710.asia-south1.run.app/api/v1/user/profile';
+
+  // Function to fetch the user's profile data from the API
+  Future<void> _fetchProfileData() async {
+    try {
+      final response = await http.get(Uri.parse('$apiUrl/${widget.userId}'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data['success'] == true) {
+          final profileData = data['data'];
+
+          setState(() {
+            _nameController.text = profileData['name'];
+            _phoneController.text = profileData['phone'];
+            _pinCodeController.text = profileData['address']['pinCode'];
+            _districtController.text = profileData['address']['district'];
+            _stateController.text = profileData['address']['state'];
+            _countryController.text = profileData['address']['country'];
+            _selectedSport = profileData['primarySport'];
+            _selectedPrimarySportRole = profileData['primarySportRole'];
+            _selectedSecondarySport = profileData['secondarySport'];
+            _selectedSecondarySportRole = profileData['secondarySportRole'];
+            _selectedAgeGroup = profileData['ageGroup'];
+            _selectedSportLevel = profileData['sportLevel'];
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(data['message'] ?? 'Failed to fetch profile data')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load profile data')),
+        );
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
+
+  // Function to update the user's profile data
+  Future<void> _updateProfile() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      final Map<String, dynamic> updatedProfileData = {
+        "name": _nameController.text,
+        "phone": _phoneController.text,
+        "address": {
+          "pinCode": _pinCodeController.text,
+          "district": _districtController.text,
+          "state": _stateController.text,
+          "country": _countryController.text,
+        },
+        "primarySport": _selectedSport,
+        "primarySportRole": _selectedPrimarySportRole,
+        "secondarySport": _selectedSecondarySport,
+        "secondarySportRole": _selectedSecondarySportRole,
+        "ageGroup": _selectedAgeGroup,
+        "sportLevel": _selectedSportLevel,
+      };
+
+      try {
+        final response = await http.put(
+          Uri.parse('$apiUrl/${widget.userId}'),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode(updatedProfileData),
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data['success'] == true) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Profile updated successfully!')),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(data['message'] ?? 'Profile update failed')),
+            );
+          }
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update profile')),
+          );
+        }
+      } catch (e) {
+        print("Error: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfileData(); // Fetch data when the screen is loaded
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Edit Profile')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Name'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _phoneController,
+                decoration: InputDecoration(labelText: 'Phone Number'),
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your phone number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _pinCodeController,
+                decoration: InputDecoration(labelText: 'Pin Code'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your pin code';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _districtController,
+                decoration: InputDecoration(labelText: 'District'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your district';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _stateController,
+                decoration: InputDecoration(labelText: 'State'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your state';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _countryController,
+                decoration: InputDecoration(labelText: 'Country'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter your country';
+                  }
+                  return null;
+                },
+              ),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: 'Primary Sport'),
+                value: _selectedSport,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedSport = newValue;
+                    _selectedPrimarySportRole = null;
+                  });
+                },
+                items: sportRoles.keys.map((sport) {
+                  return DropdownMenuItem(
+                    value: sport,
+                    child: Text(sport),
+                  );
+                }).toList(),
+              ),
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(labelText: 'Primary Sport Role'),
+                value: _selectedPrimarySportRole,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedPrimarySportRole = newValue;
+                  });
+                },
+                items: sportRoles[_selectedSport]!.map((role) {
+                  return DropdownMenuItem(
+                    value: role,
+                    child: Text(role),
+                  );
+                }).toList(),
+              ),
+              // Add secondary sport and other fields similarly
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _updateProfile,  // Calls the function to update profile
+                child: Text('Update Profile'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
